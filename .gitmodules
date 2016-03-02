@@ -1,0 +1,3 @@
+[submodule "HexagonalThings"]
+	path = HexagonalThings
+	url = https://github.com/MaciejSzaflik/HexagonalThings.git
