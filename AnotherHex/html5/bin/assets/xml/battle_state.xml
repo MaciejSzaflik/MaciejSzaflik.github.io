@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<data>
+
+	
+<chrome name="main_panel" width="100%" height="100%" src="ui/frame_g" slice9="2,2,4,4">
+	<anchor x="right" y="top" x-flush="right" y-flush="top"/> 
+</chrome>
+	
+<chrome name="bottom_panel"  x="0" y="92%" width="100%" height="8%" src="ui/frame" slice9="2,2,4,4">
+</chrome>
+
+
+<chrome name="right_panel" x="0%" y="0" width="15%" height="90%" src="ui/frame" slice9="2,2,4,4">
+</chrome>
+<chrome name="portrait_panel"  x="right_panel.center-68" y="right_panel.top+5" width="136" height="136" src="ui/frame_big" slice9="4,4,8,8" active="true">
+</chrome>
+<chrome name="queue_panel"  x="right_panel.center-32" y="portrait_panel.bottom+5" width="64" height="256" src="ui/frame_big" slice9="4,4,8,8" active="true">
+</chrome>
+	
+	
+<button x="right_panel.left + 10" y="bottom_panel.center-10" id="defend_btn" label="Defend">
+		<param type="string" value="defend"/>
+</button>
+<button x="defend_btn.left+100" y="bottom_panel.center-10" id="wait_btn" label="Wait">
+		<param type="string" value="wait"/>
+</button>
+<button x="wait_btn.left+100" y="bottom_panel.center-10" id="ability_btn" label="Ability">
+		<param type="string" value="ability"/>
+</button>
+	
+</data>
