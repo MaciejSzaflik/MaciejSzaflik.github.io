@@ -4,9 +4,29 @@
 	<meta charset="utf-8"/>
 	<title>AlgorithmsJS</title>
 	<meta name="description" content="" />
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+	<script type="text/javascript">
+		data = {labels: [],series: [[]]};
+		var init = function() {
+			var options = {
+			  width: '1300px',
+			  height: '300px',
+			  showPoint: false,
+			  showGrid: false,
+			  axisX: {
+				showGrid: false,
+				showLabel: false,
+				offset: 0
+			  }
+			};
+			new Chartist.Line('.ct-chart', data,options);
+		}
+	</script>
 </head>
 <body>
-	
 	<script src="js/AlgorithmsJS.js"></script>
+	<div id ="alfa"></div>
+	<div class="ct-chart"></div>
 </body>
 </html>

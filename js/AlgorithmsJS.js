@@ -81,6 +81,15 @@ Random.fromIterable = function(it) {
 Random.enumConstructor = function(e) {
 	if(e != null) return Random.fromArray(Type.allEnums(e)); else return null;
 };
+var Reflect = function() { };
+Reflect.__name__ = true;
+Reflect.field = function(o,field) {
+	try {
+		return o[field];
+	} catch( e ) {
+		return null;
+	}
+};
 var Std = function() { };
 Std.__name__ = true;
 Std.string = function(s) {
@@ -108,34 +117,90 @@ var algo_BrowserElements = function() {
 	this.capacityInput = this.addInputElement("750");
 	this.addParagraph("Elements Count (only for generation):");
 	this.countInput = this.addInputElement("5");
+	this.addParagraph("Iteration counter (only for meta):");
+	this.iterationInput = this.addInputElement("2000");
 	window.document.body.appendChild((function($this) {
 		var $r;
 		var _this = window.document;
 		$r = _this.createElement("hr");
 		return $r;
 	}(this)));
-	this.addButton("calculate",function(event) {
+	this.addButton("calculate DP",function(event) {
+		_g.creationDecide();
 		_g.calculate();
 	});
-	this.addButton("generate",function(event1) {
-		_g.generate();
+	var _this1 = window.document;
+	this.checkboxGenerate = _this1.createElement("input");
+	this.checkboxGenerate.type = "checkbox";
+	this.checkboxGenerate.title = "generate";
+	window.document.body.appendChild(this.checkboxGenerate);
+	var _this2 = window.document;
+	this.keepCreated = _this2.createElement("input");
+	this.keepCreated.type = "checkbox";
+	this.keepCreated.title = "keep";
+	window.document.body.appendChild(this.keepCreated);
+	this.addButton("test",function(event1) {
+		_g.creationDecide();
+		_g.generateOneAndPrint();
+	});
+	this.addButton("random search",function(event2) {
+		_g.creationDecide();
+		_g.randomSearchInput();
+	});
+	this.addButton("random search",function(event3) {
+		_g.creationDecide();
+		_g.randomSearchInput();
 	});
 };
 algo_BrowserElements.__name__ = true;
 algo_BrowserElements.prototype = {
-	generate: function() {
+	creationDecide: function() {
+		if(this.keepCreated.checked && this.instance != null) return;
+		if(this.checkboxGenerate.checked) this.parseAndRandom(); else this.parseAndFromValues();
+	}
+	,randomSearchInput: function() {
+		var iterations = Std.parseInt(this.iterationInput.value);
+		var randomSearch = new algo_problems_RandomSearch(this.instance);
+		var result = randomSearch.solve(iterations,true);
+		if(this.randomSearchPara == null) {
+			this.randomSearchPara = this.addParagraph();
+			window.document.body.appendChild((function($this) {
+				var $r;
+				var _this = window.document;
+				$r = _this.createElement("hr");
+				return $r;
+			}(this)));
+		}
+		this.randomSearchPara.textContent = "R: " + result.value + " || I: " + Std.string(result.resultVector) + " || W:" + result.weight;
+		this.fillGraphWithHistory(randomSearch.history);
+	}
+	,fillGraphWithHistory: function(history) {
+		var h = Reflect.field(window,"data");
+		var strings = [];
+		var index = 1;
+		var _g = 0;
+		while(_g < history.length) {
+			var value = history[_g];
+			++_g;
+			strings.push(index + "");
+			index++;
+		}
+		h.labels = strings;
+		h.series[0] = history;
+		init();
+	}
+	,parseAndRandom: function() {
 		var randsW = this.weightInput.value.split(",").map(function(f) {
 			return Std.parseInt(f);
 		});
-		var randsV = this.weightInput.value.split(",").map(function(f1) {
+		var randsV = this.valueInput.value.split(",").map(function(f1) {
 			return Std.parseInt(f1);
 		});
 		var capacity = Std.parseInt(this.capacityInput.value);
 		var count = Std.parseInt(this.countInput.value);
-		var instance = algo_problems_BinaryKnapsack.generateInstance(capacity,count,randsW[0],randsW[1],randsV[0],randsV[1]);
-		this.solveAndPrint(instance);
+		this.instance = algo_problems_BinaryKnapsack.generateInstance(capacity,count,randsW[0],randsW[1],randsV[0],randsV[1]);
 	}
-	,calculate: function() {
+	,parseAndFromValues: function() {
 		var weights = this.weightInput.value.split(",").map(function(f) {
 			return Std.parseInt(f);
 		});
@@ -147,14 +212,41 @@ algo_BrowserElements.prototype = {
 			js_Browser.alert("Bad arguments");
 			return;
 		}
-		var instance = algo_problems_BinaryKnapsack.initInstance(capacity,values,weights);
-		this.solveAndPrint(instance);
+		this.instance = algo_problems_BinaryKnapsack.initInstance(capacity,values,weights);
+	}
+	,calculate: function() {
+		if(this.instance == null) return;
+		this.solveAndPrint(this.instance);
+	}
+	,generateOneAndPrint: function() {
+		if(this.testOnePara == null) {
+			this.testOnePara = this.addParagraph();
+			window.document.body.appendChild((function($this) {
+				var $r;
+				var _this = window.document;
+				$r = _this.createElement("hr");
+				return $r;
+			}(this)));
+		}
+		var v = this.instance.generateRandomSolution();
+		this.testOnePara.textContent = "R: " + v.value + "|| I: " + Std.string(v.resultVector) + " || W:" + v.weight;
 	}
 	,solveAndPrint: function(instance) {
-		this.weightPara = this.addParagraph("Weights: " + instance.getWeightDebug());
-		this.valuePara = this.addParagraph("Values: " + instance.getValuesDebug());
+		if(this.weightPara == null) {
+			this.resultPara = this.addParagraph();
+			this.weightPara = this.addParagraph();
+			this.valuePara = this.addParagraph();
+			window.document.body.appendChild((function($this) {
+				var $r;
+				var _this = window.document;
+				$r = _this.createElement("hr");
+				return $r;
+			}(this)));
+		}
 		var result = algo_problems_DPKnapsack.solve(instance);
-		this.resultPara = this.addParagraph("Result: " + Std.string(algo_problems_DPKnapsack.solve(instance)) + "||" + instance.evaluateValue(result));
+		this.resultPara.textContent = "Result: " + result.value + " || " + Std.string(result.resultVector);
+		this.weightPara.textContent = "Weights: " + instance.getWeightDebug();
+		this.valuePara.textContent = "Values: " + instance.getValuesDebug();
 	}
 	,addButton: function(text,listener) {
 		var button;
@@ -176,6 +268,7 @@ algo_BrowserElements.prototype = {
 		return input;
 	}
 	,addParagraph: function(text) {
+		if(text == null) text = "yo";
 		var paragraph;
 		var _this = window.document;
 		paragraph = _this.createElement("p");
@@ -221,6 +314,27 @@ algo_problems_BinaryKnapsack.prototype = {
 			index++;
 		}
 		return binary;
+	}
+	,generateRandomSolution: function() {
+		var v;
+		var this1;
+		this1 = new Array(this.values.length);
+		v = this1;
+		var index = 0;
+		var sum = 0;
+		var valueSum = 0;
+		while(index < v.length) {
+			var result = Math.random() < 0.5;
+			if(result) {
+				v[index] = this.weights[index] + sum <= this.capacity;
+				if(v[index]) {
+					sum += this.weights[index];
+					valueSum += this.values[index];
+				}
+			} else v[index] = false;
+			index++;
+		}
+		return new algo_problems_Result(v,valueSum,sum);
 	}
 	,evaluateValue: function(items) {
 		var sum = 0;
@@ -295,7 +409,8 @@ algo_problems_DPKnapsack.solve = function(knapsack) {
 		}
 		i++;
 	}
-	return algo_problems_DPKnapsack.traceResult(knapsack,rows);
+	var vector = algo_problems_DPKnapsack.traceResult(knapsack,rows);
+	return new algo_problems_Result(vector,knapsack.evaluateValue(vector));
 };
 algo_problems_DPKnapsack.traceResult = function(knapsack,table) {
 	var v;
@@ -318,6 +433,37 @@ algo_problems_DPKnapsack.traceResult = function(knapsack,table) {
 	} else i = i - 1;
 	return v;
 };
+var algo_problems_RandomSearch = function(knapsack) {
+	this.knapsack = knapsack;
+};
+algo_problems_RandomSearch.__name__ = true;
+algo_problems_RandomSearch.prototype = {
+	solve: function(iterations,withHistory) {
+		this.history = [];
+		var bestResult = new algo_problems_Result((function($this) {
+			var $r;
+			var this1;
+			this1 = new Array(1);
+			$r = this1;
+			return $r;
+		}(this)),-1);
+		var index = 0;
+		while(index < iterations) {
+			var tryV = this.knapsack.generateRandomSolution();
+			if(tryV.value > bestResult.value) bestResult = tryV;
+			index++;
+			if(withHistory) this.history.push(bestResult.value);
+		}
+		return bestResult;
+	}
+};
+var algo_problems_Result = function(resultVector,value,weight) {
+	if(weight == null) weight = 0;
+	this.resultVector = resultVector;
+	this.value = value;
+	this.weight = weight;
+};
+algo_problems_Result.__name__ = true;
 var js_Boot = function() { };
 js_Boot.__name__ = true;
 js_Boot.__string_rec = function(o,s) {
