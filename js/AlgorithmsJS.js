@@ -1,4 +1,10 @@
 (function (console) { "use strict";
+function $extend(from, fields) {
+	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
+	for (var name in fields) proto[name] = fields[name];
+	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
+	return proto;
+}
 var HxOverrides = function() { };
 HxOverrides.__name__ = true;
 HxOverrides.cca = function(s,index) {
@@ -118,7 +124,11 @@ var algo_BrowserElements = function() {
 	this.addParagraph("Elements Count (only for generation):");
 	this.countInput = this.addInputElement("5");
 	this.addParagraph("Iteration counter (only for meta):");
-	this.iterationInput = this.addInputElement("2000");
+	this.iterationInput = this.addInputElement("2000",40);
+	this.populationInput = this.addInputElement("50",20);
+	this.mutatorInput = this.addInputElement("1.0",20);
+	this.reconbinatorInput = this.addInputElement("0.7",20);
+	this.terminatorInput = this.addInputElement("5",20);
 	window.document.body.appendChild((function($this) {
 		var $r;
 		var _this = window.document;
@@ -145,11 +155,24 @@ var algo_BrowserElements = function() {
 	});
 	this.addButton("random search",function(event2) {
 		_g.creationDecide();
-		_g.randomSearchInput();
+		var iterations = Std.parseInt(_g.iterationInput.value);
+		var randomSearch = new algo_problems_RandomSearch(iterations,_g.instance);
+		_g.problemSolverStart("rand",randomSearch);
 	});
-	this.addButton("random search",function(event3) {
+	this.addButton("sa",function(event3) {
 		_g.creationDecide();
-		_g.randomSearchInput();
+		var iterations1 = Std.parseInt(_g.iterationInput.value);
+		var sa = new algo_problems_SimulatedAnnaling(iterations1,_g.instance);
+		_g.problemSolverStart("sa",sa);
+	});
+	this.addButton("genetic",function(event4) {
+		_g.creationDecide();
+		var pop = Std.parseInt(_g.populationInput.value);
+		var mut = parseFloat(_g.mutatorInput.value);
+		var recon = parseFloat(_g.reconbinatorInput.value);
+		var ter = Std.parseInt(_g.terminatorInput.value);
+		var genetic = new algo_problems_GeneticAlgorithm(_g.instance,pop,mut,recon,ter);
+		_g.problemSolverStart("gen",genetic);
 	});
 };
 algo_BrowserElements.__name__ = true;
@@ -158,21 +181,17 @@ algo_BrowserElements.prototype = {
 		if(this.keepCreated.checked && this.instance != null) return;
 		if(this.checkboxGenerate.checked) this.parseAndRandom(); else this.parseAndFromValues();
 	}
-	,randomSearchInput: function() {
-		var iterations = Std.parseInt(this.iterationInput.value);
-		var randomSearch = new algo_problems_RandomSearch(this.instance);
-		var result = randomSearch.solve(iterations,true);
-		if(this.randomSearchPara == null) {
-			this.randomSearchPara = this.addParagraph();
-			window.document.body.appendChild((function($this) {
-				var $r;
-				var _this = window.document;
-				$r = _this.createElement("hr");
-				return $r;
-			}(this)));
-		}
-		this.randomSearchPara.textContent = "R: " + result.value + " || I: " + Std.string(result.resultVector) + " || W:" + result.weight;
-		this.fillGraphWithHistory(randomSearch.history);
+	,problemSolverStart: function(id,solver) {
+		var result = solver.solve(true);
+		var para = this.addParagraph();
+		window.document.body.appendChild((function($this) {
+			var $r;
+			var _this = window.document;
+			$r = _this.createElement("hr");
+			return $r;
+		}(this)));
+		para.textContent = "Solver: " + id + ": " + result.value + " || I: " + Std.string(result.resultVector) + " || W:" + result.weight;
+		this.fillGraphWithHistory(solver.history);
 	}
 	,fillGraphWithHistory: function(history) {
 		var h = Reflect.field(window,"data");
@@ -198,6 +217,10 @@ algo_BrowserElements.prototype = {
 		});
 		var capacity = Std.parseInt(this.capacityInput.value);
 		var count = Std.parseInt(this.countInput.value);
+		if(randsW[0] > capacity) {
+			js_Browser.alert("cannot create such instance");
+			return;
+		}
 		this.instance = algo_problems_BinaryKnapsack.generateInstance(capacity,count,randsW[0],randsW[1],randsV[0],randsV[1]);
 	}
 	,parseAndFromValues: function() {
@@ -257,12 +280,13 @@ algo_BrowserElements.prototype = {
 		window.document.body.appendChild(button);
 		return button;
 	}
-	,addInputElement: function(initial) {
+	,addInputElement: function(initial,size) {
+		if(size == null) size = 160;
 		if(initial == null) initial = "hello";
 		var input;
 		var _this = window.document;
 		input = _this.createElement("input");
-		input.size = 160;
+		input.size = size;
 		input.value = initial;
 		window.document.body.appendChild(input);
 		return input;
@@ -281,6 +305,23 @@ var algo_Main = function() { };
 algo_Main.__name__ = true;
 algo_Main.main = function() {
 	var browserElements = new algo_BrowserElements();
+};
+var algo_Utils = function() { };
+algo_Utils.__name__ = true;
+algo_Utils.copyVec = function(items) {
+	var toReturn;
+	var this1;
+	this1 = new Array(items.length);
+	toReturn = this1;
+	var index = 0;
+	var _g = 0;
+	while(_g < items.length) {
+		var item = items[_g];
+		++_g;
+		toReturn[index] = item;
+		index++;
+	}
+	return toReturn;
 };
 var algo_problems_BinaryKnapsack = function() {
 };
@@ -306,7 +347,18 @@ algo_problems_BinaryKnapsack.generateInstance = function(capacity,numberOfItems,
 	return knapsack;
 };
 algo_problems_BinaryKnapsack.prototype = {
-	toBinaryVector: function(items) {
+	averageItemValue: function() {
+		var sum = 0;
+		var _g = 0;
+		var _g1 = this.values;
+		while(_g < _g1.length) {
+			var valye = _g1[_g];
+			++_g;
+			sum += valye;
+		}
+		return sum / this.values.length;
+	}
+	,toBinaryVector: function(items) {
 		var binary = [];
 		var index = 0;
 		while(index < this.values.length) {
@@ -335,6 +387,44 @@ algo_problems_BinaryKnapsack.prototype = {
 			index++;
 		}
 		return new algo_problems_Result(v,valueSum,sum);
+	}
+	,generateNeighbour: function(current) {
+		var copyV = algo_Utils.copyVec(current);
+		var result = null;
+		do {
+			var indexToChange = Math.floor((current.length - 1 + 1) * Math.random());
+			copyV[indexToChange] = !copyV[indexToChange];
+			result = this.fillResult(copyV);
+		} while(result.weight > this.capacity);
+		return result;
+	}
+	,fillResult: function(items) {
+		var sumV = 0;
+		var sumW = 0;
+		var index = 0;
+		var _g = 0;
+		while(_g < items.length) {
+			var item = items[_g];
+			++_g;
+			if(item) {
+				sumW += this.weights[index];
+				sumV += this.values[index];
+			}
+			index++;
+		}
+		return new algo_problems_Result(items,sumV,sumW);
+	}
+	,evaluateWeight: function(items) {
+		var sum = 0;
+		var index = 0;
+		var _g = 0;
+		while(_g < items.length) {
+			var item = items[_g];
+			++_g;
+			if(item) sum += this.weights[index];
+			index++;
+		}
+		return sum;
 	}
 	,evaluateValue: function(items) {
 		var sum = 0;
@@ -433,30 +523,140 @@ algo_problems_DPKnapsack.traceResult = function(knapsack,table) {
 	} else i = i - 1;
 	return v;
 };
-var algo_problems_RandomSearch = function(knapsack) {
-	this.knapsack = knapsack;
+var algo_problems_ProblemSolver = function() {
 };
-algo_problems_RandomSearch.__name__ = true;
-algo_problems_RandomSearch.prototype = {
-	solve: function(iterations,withHistory) {
+algo_problems_ProblemSolver.__name__ = true;
+algo_problems_ProblemSolver.prototype = {
+	solve: function(withHistory) {
+		return null;
+	}
+};
+var algo_problems_GeneticAlgorithm = function(knapsack,populationSize,mutator,recombinationProbability,termination) {
+	algo_problems_ProblemSolver.call(this);
+	this.knapsack = knapsack;
+	this.populationSize = 50;
+	this.mutationProbability = 1.0 / knapsack.values.length * mutator;
+	this.recombinationProbability = 0.7;
+	this.termination = 5;
+	this.uselessGenerations = 0;
+};
+algo_problems_GeneticAlgorithm.__name__ = true;
+algo_problems_GeneticAlgorithm.__super__ = algo_problems_ProblemSolver;
+algo_problems_GeneticAlgorithm.prototype = $extend(algo_problems_ProblemSolver.prototype,{
+	solve: function(withHistory) {
+		var population = this.generateFirstGeneration();
 		this.history = [];
-		var bestResult = new algo_problems_Result((function($this) {
+		this.allTimeBest = new algo_problems_Result((function($this) {
 			var $r;
 			var this1;
 			this1 = new Array(1);
 			$r = this1;
 			return $r;
-		}(this)),-1);
+		}(this)),0,0);
+		while(this.uselessGenerations < this.termination) {
+			var index = 0;
+			var newPoulation = [];
+			var lastPoulationBest = this.allTimeBest.value;
+			while(index < this.populationSize) {
+				this.generateChildren(population,newPoulation);
+				index++;
+			}
+			population = newPoulation;
+			if(this.allTimeBest.value > lastPoulationBest) this.uselessGenerations = 0; else this.uselessGenerations++;
+			this.history.push(this.allTimeBest.value);
+		}
+		return this.allTimeBest;
+	}
+	,generateFirstGeneration: function() {
 		var index = 0;
-		while(index < iterations) {
-			var tryV = this.knapsack.generateRandomSolution();
+		var toReturn = [];
+		while(index < this.populationSize) {
+			toReturn.push(this.knapsack.generateRandomSolution());
+			index++;
+		}
+		return toReturn;
+	}
+	,generateChildren: function(population,newPopulation) {
+		var parentA = this.chooseParent(population);
+		var parentB = this.chooseParent(population);
+		if(this.recombinationProbability > Math.random()) {
+			newPopulation.push(this.onChildPush(this.crossParents(parentA,parentB)));
+			newPopulation.push(this.onChildPush(this.crossParents(parentB,parentA)));
+		} else {
+			newPopulation.push(this.onChildPush(parentA));
+			newPopulation.push(this.onChildPush(parentB));
+		}
+	}
+	,crossParents: function(parentA,parentB) {
+		var index = 0;
+		var newVector;
+		var this1;
+		this1 = new Array(parentA.resultVector.length);
+		newVector = this1;
+		while(index < parentA.resultVector.length) {
+			if(index < parentA.resultVector.length / 2) newVector[index] = parentA.resultVector[index]; else newVector[index] = parentB.resultVector[index];
+			index++;
+		}
+		return new algo_problems_Result(newVector,0,0);
+	}
+	,mutateChild: function(child) {
+		var index = 0;
+		while(index < child.resultVector.length) {
+			if(Math.random() > this.mutationProbability) child.resultVector[index] = !child.resultVector[index];
+			index++;
+		}
+		return child;
+	}
+	,onChildPush: function(child) {
+		child = this.mutateChild(child);
+		child = this.recalculateChild(child);
+		if(child.value > this.allTimeBest.value) this.allTimeBest = child;
+		return child;
+	}
+	,recalculateChild: function(child) {
+		var index = 0;
+		var valueSum = 0;
+		var weightSum = 0;
+		while(index < child.resultVector.length) {
+			if(child.resultVector[index]) {
+				if(weightSum + this.knapsack.weights[index] > this.knapsack.capacity) child.resultVector[index] = false; else {
+					weightSum += this.knapsack.weights[index];
+					valueSum += this.knapsack.values[index];
+				}
+			}
+			index++;
+		}
+		child.weight = weightSum;
+		child.value = valueSum;
+		return child;
+	}
+	,chooseParent: function(population) {
+		var firstParentI = Math.floor((population.length - 1 + 1) * Math.random());
+		var secParentI = Math.floor((population.length - 1 + 1) * Math.random());
+		if(population[firstParentI].value > population[secParentI].value) return population[firstParentI]; else return population[secParentI];
+	}
+});
+var algo_problems_RandomSearch = function(iterations,knapsack) {
+	algo_problems_ProblemSolver.call(this);
+	this.knapsack = knapsack;
+	this.iterations = iterations;
+};
+algo_problems_RandomSearch.__name__ = true;
+algo_problems_RandomSearch.__super__ = algo_problems_ProblemSolver;
+algo_problems_RandomSearch.prototype = $extend(algo_problems_ProblemSolver.prototype,{
+	solve: function(withHistory) {
+		this.history = [];
+		var bestResult = this.knapsack.generateRandomSolution();
+		var index = 0;
+		while(index < this.iterations) {
+			var tryV = this.knapsack.generateNeighbour(bestResult.resultVector);
 			if(tryV.value > bestResult.value) bestResult = tryV;
 			index++;
 			if(withHistory) this.history.push(bestResult.value);
 		}
 		return bestResult;
 	}
-};
+});
 var algo_problems_Result = function(resultVector,value,weight) {
 	if(weight == null) weight = 0;
 	this.resultVector = resultVector;
@@ -464,6 +664,48 @@ var algo_problems_Result = function(resultVector,value,weight) {
 	this.weight = weight;
 };
 algo_problems_Result.__name__ = true;
+var algo_problems_SimulatedAnnaling = function(iterations,knapsack) {
+	algo_problems_ProblemSolver.call(this);
+	this.iterations = iterations;
+	this.knapsack = knapsack;
+};
+algo_problems_SimulatedAnnaling.__name__ = true;
+algo_problems_SimulatedAnnaling.__super__ = algo_problems_ProblemSolver;
+algo_problems_SimulatedAnnaling.prototype = $extend(algo_problems_ProblemSolver.prototype,{
+	solve: function(withHistory) {
+		this.history = [];
+		var T = 1.0;
+		var T_min = 0.00001;
+		var alpha = 0.9;
+		var currentResult = this.knapsack.generateRandomSolution();
+		var bestResult = new algo_problems_Result((function($this) {
+			var $r;
+			var this1;
+			this1 = new Array(1);
+			$r = this1;
+			return $r;
+		}(this)),-1);
+		var avergeValue = this.knapsack.averageItemValue();
+		while(T > T_min) {
+			var index = 0;
+			while(index < this.iterations) {
+				var tryV = this.knapsack.generateNeighbour(currentResult.resultVector);
+				var ap = this.acceptancePropability(avergeValue,tryV.value,currentResult.value,T);
+				if(tryV.value > currentResult.value || ap > Math.random()) {
+					currentResult = tryV;
+					if(currentResult.value > bestResult.value) bestResult = currentResult;
+				}
+				index++;
+				if(withHistory) this.history.push(currentResult.value);
+			}
+			T = T * alpha;
+		}
+		return bestResult;
+	}
+	,acceptancePropability: function(avarageValue,newCost,oldCost,T) {
+		return (oldCost - newCost) / avarageValue * T;
+	}
+});
 var js_Boot = function() { };
 js_Boot.__name__ = true;
 js_Boot.__string_rec = function(o,s) {
