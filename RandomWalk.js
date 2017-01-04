@@ -18,7 +18,7 @@ Std.parseInt = function(x) {
 var randomWalk_Main = function() { };
 randomWalk_Main.main = function() {
 	randomWalk_Main.randomWalk = new randomWalk_RandomWalk();
-	randomWalk_Main.randomWalk.Init(500,32);
+	randomWalk_Main.randomWalk.Init(500,128);
 	window.requestAnimationFrame(randomWalk_Main.frame);
 };
 randomWalk_Main.frame = function(timestamp) {
@@ -26,7 +26,7 @@ randomWalk_Main.frame = function(timestamp) {
 	window.requestAnimationFrame(randomWalk_Main.frame);
 };
 var randomWalk_RandomWalk = function() {
-	this.speed = 1;
+	this.speed = 100;
 	this.running = false;
 	this.currentY = 0;
 	this.currentX = 0;
@@ -35,12 +35,16 @@ var randomWalk_RandomWalk = function() {
 };
 randomWalk_RandomWalk.prototype = {
 	Init: function(canvasHeight,numerOfRows) {
-		this.createCanvas(canvasHeight);
+		if(this.canvas == null) this.createCanvas(canvasHeight);
+		this.addButtons();
+		this.calculateSizeAndPoints(canvasHeight,numerOfRows);
+	}
+	,calculateSizeAndPoints : function(canvasHeight,numerOfRows) {
 		this.rowsNumber = numerOfRows;
 		this.columnsNumber = numerOfRows * 2;
 		this.cellSize = canvasHeight / numerOfRows;
 		this.drawPoints();
-		this.addButtons();
+		
 		this.enableSteps(true);
 	}
 	,addButtons: function() {
@@ -64,6 +68,8 @@ randomWalk_RandomWalk.prototype = {
 		window.document.body.appendChild(stopButton);
 		var input;
 		var _this2 = window.document;
+		
+		
 		input = _this2.createElement("input");
 		input.value = this.speed + "";
 		window.document.body.appendChild(input);
@@ -76,6 +82,23 @@ randomWalk_RandomWalk.prototype = {
 		};
 		speedButton.textContent = "setSpeed";
 		window.document.body.appendChild(speedButton);
+		
+		var rowInput;
+		var rowButton;
+		var _this4 = window.document;
+		
+		rowInput = _this3.createElement("input");
+		rowInput.value = this.rowsNumber + "";
+		window.document.body.appendChild(rowInput);
+		var rowButton;
+		var _this4 = window.document;
+		rowButton = _this4.createElement("button");
+		rowButton.onclick = function(event3) {
+			var parse = Std.parseInt(rowInput.value);
+			if(parse != null) _g.calculateSizeAndPoints(500,parse)
+		};
+		rowButton.textContent = "set row count";
+		window.document.body.appendChild(rowButton);
 	}
 	,createCanvas: function(canvasHeight) {
 		var _this = window.document;
@@ -93,7 +116,7 @@ randomWalk_RandomWalk.prototype = {
 		this.currentY = 0;
 		this.ctx.fillStyle = "#FFFFFF";
 		this.ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
-		this.ctx.fillStyle = "#333333";
+		this.ctx.fillStyle = "#AAAAAA";
 		var _g1 = 0;
 		var _g = this.rowsNumber;
 		while(_g1 < _g) {
@@ -102,7 +125,7 @@ randomWalk_RandomWalk.prototype = {
 			var _g2 = this.columnsNumber;
 			while(_g3 < _g2) {
 				var j = _g3++;
-				this.ctx.fillRect(j * this.cellSize + 10,i * this.cellSize + 10,2,2);
+				this.ctx.fillRect(j * this.cellSize + 10,i * this.cellSize + 10,1,1);
 			}
 		}
 	}
@@ -117,7 +140,7 @@ randomWalk_RandomWalk.prototype = {
 			var i = _g1++;
 			var where = this.RandomRange(0,3);
 			var pos = this.getCurrentPosition(this.currentX,this.currentY);
-			this.ctx.lineWidth = 2;
+			this.ctx.lineWidth = 1;
 			this.ctx.beginPath();
 			this.ctx.moveTo(pos.x + 1,pos.y + 1);
 			switch(where) {
