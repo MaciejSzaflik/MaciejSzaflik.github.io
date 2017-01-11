@@ -43,6 +43,26 @@ ApplicationMain.create = function() {
 	types.push("IMAGE");
 	urls.push("assets/images/hex_basic_3.png");
 	types.push("IMAGE");
+	urls.push("assets/images/hex_empty_0.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_empty_1.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_empty_2.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_water_0.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_water_1.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_water_2.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_water_3.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_water_4.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_water_5.png");
+	types.push("IMAGE");
+	urls.push("assets/images/hex_water_6.png");
+	types.push("IMAGE");
 	urls.push("assets/images/images-go-here.txt");
 	types.push("TEXT");
 	urls.push("assets/images/Knight.png");
@@ -157,7 +177,7 @@ ApplicationMain.init = function() {
 	if(total == 0) ApplicationMain.start();
 };
 ApplicationMain.main = function() {
-	ApplicationMain.config = { build : "439", company : "Selflearing", file : "Selflearing", fps : 60, name : "Selflearing", orientation : "", packageName : "com.example.myapp", version : "0.0.1", windows : [{ antialiasing : 0, background : 4473924, borderless : false, depthBuffer : false, display : 0, fullscreen : false, hardware : false, height : 700, parameters : "{}", resizable : false, stencilBuffer : true, title : "Selflearing", vsync : true, width : 1100, x : null, y : null}]};
+	ApplicationMain.config = { build : "471", company : "Selflearing", file : "Selflearing", fps : 60, name : "Selflearing", orientation : "", packageName : "com.example.myapp", version : "0.0.1", windows : [{ antialiasing : 0, background : 4473924, borderless : false, depthBuffer : false, display : 0, fullscreen : false, hardware : false, height : 700, parameters : "{}", resizable : false, stencilBuffer : true, title : "Selflearing", vsync : true, width : 1100, x : null, y : null}]};
 };
 ApplicationMain.start = function() {
 	var hasMain = false;
@@ -1700,6 +1720,36 @@ var DefaultAssetLibrary = function() {
 	id = "assets/images/hex_basic_3.png";
 	this.path.set(id,id);
 	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_empty_0.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_empty_1.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_empty_2.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_water_0.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_water_1.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_water_2.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_water_3.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_water_4.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_water_5.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
+	id = "assets/images/hex_water_6.png";
+	this.path.set(id,id);
+	this.type.set(id,"IMAGE");
 	id = "assets/images/images-go-here.txt";
 	this.path.set(id,id);
 	this.type.set(id,"TEXT");
@@ -3098,7 +3148,6 @@ MainState.prototype = $extend(flixel_addons_ui_FlxUIState.prototype,{
 	}
 	,drawMap: function(drawDebug) {
 		this.getHexMap().createBackground();
-		this.getDrawer().drawHexMap(this.getHexMap(),-5592457,0,0);
 		if(drawDebug) this.drawDebugGraph(0);
 	}
 	,drawHexesRange: function(range,layer,color) {
@@ -3123,8 +3172,10 @@ MainState.prototype = $extend(flixel_addons_ui_FlxUIState.prototype,{
 		this.drawer.drawCircle(position,5,color,layer);
 	}
 	,drawDebugGraph: function(layer) {
-		var lines = this.getHexMap().getArrayOfPoints();
-		this.getDrawer().drawListOfLines(lines,1727987712,layer);
+		var lines = this.getHexMap().getArrayOfPoints(this.getHexMap().getGraph());
+		this.getDrawer().drawListOfLines(lines,1711341312,layer);
+		var lines1 = this.getHexMap().getArrayOfPoints(this.getHexMap().getGraph().subGraph);
+		this.getDrawer().drawListOfLines(lines1,1727987712,layer);
 	}
 	,update: function(elapsed) {
 		if(MainState.instance == null) return;
@@ -48978,21 +49029,25 @@ graph_Edge.prototype = {
 };
 var graph_Graph = function() {
 	this.adjacencyList = new haxe_ds_IntMap();
+	this.removedVertices = new haxe_ds_IntMap();
 	this.impassableVertices = new haxe_ds_IntMap();
 };
 $hxClasses["graph.Graph"] = graph_Graph;
 graph_Graph.__name__ = ["graph","Graph"];
 graph_Graph.prototype = {
 	adjacencyList: null
+	,subGraph: null
 	,impassableVertices: null
 	,vertices: null
 	,edges: null
+	,removedVertices: null
 	,addConnection: function(first,second) {
 		this.addSingleConnection(first,second);
 		this.addSingleConnection(second,first);
 	}
 	,GetNumberOfConnections: function(index) {
 		var ret = 0;
+		if(!this.adjacencyList.h.hasOwnProperty(index)) return ret;
 		var $it0 = (function($this) {
 			var $r;
 			var this1 = $this.adjacencyList.h[index];
@@ -49017,7 +49072,35 @@ graph_Graph.prototype = {
 			this.adjacencyList.h[first] = value;
 		}
 	}
+	,createSubgrafFromVertices: function(vertices,removeFromMain) {
+		if(this.subGraph == null) this.subGraph = new graph_Graph();
+		var $it0 = vertices.keys();
+		while( $it0.hasNext() ) {
+			var vert = $it0.next();
+			var value = new haxe_ds_IntMap();
+			this.subGraph.adjacencyList.h[vert] = value;
+			var $it1 = (function($this) {
+				var $r;
+				var this1 = $this.adjacencyList.h[vert];
+				$r = this1.keys();
+				return $r;
+			}(this));
+			while( $it1.hasNext() ) {
+				var neigh = $it1.next();
+				if(vertices.h.hasOwnProperty(neigh)) this.subGraph.addConnection(vert,neigh);
+			}
+		}
+		if(removeFromMain) {
+			var $it2 = vertices.keys();
+			while( $it2.hasNext() ) {
+				var vert1 = $it2.next();
+				this.removeVertex(vert1);
+			}
+		}
+	}
 	,removeVertex: function(toRemove) {
+		var value = this.adjacencyList.h[toRemove];
+		this.removedVertices.h[toRemove] = value;
 		this.adjacencyList.remove(toRemove);
 		var $it0 = this.adjacencyList.iterator();
 		while( $it0.hasNext() ) {
@@ -51625,8 +51708,8 @@ hex_HexMap.prototype = $extend(source_BoardMap.prototype,{
 	,getHexCenter: function(index) {
 		return this.getHexByIndex(index).center;
 	}
-	,getArrayOfPoints: function() {
-		var edges = this.getGraph().getListOfEdges();
+	,getArrayOfPoints: function(graph) {
+		var edges = graph.getListOfEdges();
 		var listOfPoints = new List();
 		var _g_head = edges.h;
 		var _g_val = null;
@@ -51686,51 +51769,57 @@ hex_HexMap.prototype = $extend(source_BoardMap.prototype,{
 		var $it0 = this.hexes.iterator();
 		while( $it0.hasNext() ) {
 			var hex1 = $it0.next();
-			sprite.loadGraphic("assets/images/hex_basic_" + Math.floor(4 * Math.random()) + ".png",false,Std["int"](this.get_hexSize()) - 1,Std["int"](this.get_hexSize()) - 1);
-			var x = Std["int"](hex1.center.x - this.get_hexSize() / 2);
-			var y = Std["int"](hex1.center.y - this.get_hexSize() / 2);
 			var value = this.graphConnections.GetNumberOfConnections(hex1.getIndex());
-			sprite.set_color((function($this) {
-				var $r;
-				var Color1 = -16777216;
-				var Color2 = -1;
-				var Factor = value / 6;
-				var r = ((Color2 >> 16 & 255) - (Color1 >> 16 & 255)) * Factor + (Color1 >> 16 & 255) | 0;
-				var g = ((Color2 >> 8 & 255) - (Color1 >> 8 & 255)) * Factor + (Color1 >> 8 & 255) | 0;
-				var b = ((Color2 & 255) - (Color1 & 255)) * Factor + (Color1 & 255) | 0;
-				var a = ((Color2 >> 24 & 255) - (Color1 >> 24 & 255)) * Factor + (Color1 >> 24 & 255) | 0;
-				$r = (function($this) {
+			if(value > 0) {
+				sprite.loadGraphic("assets/images/hex_basic_" + Math.floor(4 * Math.random()) + ".png",false,Std["int"](this.get_hexSize()) - 1,Std["int"](this.get_hexSize()) - 1);
+				sprite.set_color((function($this) {
 					var $r;
-					var color = flixel_util__$FlxColor_FlxColor_$Impl_$._new();
+					var Color1 = -16777216;
+					var Color2 = -1;
+					var Factor = value / 6 + 0.2;
+					var r = ((Color2 >> 16 & 255) - (Color1 >> 16 & 255)) * Factor + (Color1 >> 16 & 255) | 0;
+					var g = ((Color2 >> 8 & 255) - (Color1 >> 8 & 255)) * Factor + (Color1 >> 8 & 255) | 0;
+					var b = ((Color2 & 255) - (Color1 & 255)) * Factor + (Color1 & 255) | 0;
+					var a = ((Color2 >> 24 & 255) - (Color1 >> 24 & 255)) * Factor + (Color1 >> 24 & 255) | 0;
 					$r = (function($this) {
 						var $r;
-						{
-							color &= -16711681;
-							color |= (r > 255?255:r < 0?0:r) << 16;
-							r;
-						}
-						{
-							color &= -65281;
-							color |= (g > 255?255:g < 0?0:g) << 8;
-							g;
-						}
-						{
-							color &= -256;
-							if(b > 255) color |= 255; else if(b < 0) color |= 0; else color |= b;
-							b;
-						}
-						{
-							color &= 16777215;
-							color |= (a > 255?255:a < 0?0:a) << 24;
-							a;
-						}
-						$r = color;
+						var color = flixel_util__$FlxColor_FlxColor_$Impl_$._new();
+						$r = (function($this) {
+							var $r;
+							{
+								color &= -16711681;
+								color |= (r > 255?255:r < 0?0:r) << 16;
+								r;
+							}
+							{
+								color &= -65281;
+								color |= (g > 255?255:g < 0?0:g) << 8;
+								g;
+							}
+							{
+								color &= -256;
+								if(b > 255) color |= 255; else if(b < 0) color |= 0; else color |= b;
+								b;
+							}
+							{
+								color &= 16777215;
+								color |= (a > 255?255:a < 0?0:a) << 24;
+								a;
+							}
+							$r = color;
+							return $r;
+						}($this));
 						return $r;
 					}($this));
 					return $r;
-				}($this));
-				return $r;
-			}(this)));
+				}(this)));
+			} else {
+				value = this.graphConnections.subGraph.GetNumberOfConnections(hex1.getIndex());
+				sprite.loadGraphic("assets/images/hex_water_" + value + ".png",false,Std["int"](this.get_hexSize()) - 1,Std["int"](this.get_hexSize()) - 1);
+				sprite.set_color(-1);
+			}
+			var x = Std["int"](hex1.center.x - this.get_hexSize() / 2);
+			var y = Std["int"](hex1.center.y - this.get_hexSize() / 2);
 			this.backgroundSprite.stamp(sprite,x,y);
 		}
 		sprite.destroy();
@@ -51784,17 +51873,17 @@ hex_RectangleHexMap.prototype = $extend(hex_HexMap.prototype,{
 		this.CalculatePoints();
 	}
 	,CalculatePoints: function() {
-		var frequency = 0.1;
-		var lacunarity = 20.0;
-		var persistence = 0.5;
-		var octaves = 6;
+		var frequency = 0.01;
+		var lacunarity = 1.0;
+		var persistence = 0.1;
+		var octaves = 2;
 		var seed = 100 + Math.floor(19901 * Math.random());
 		var quality = libnoise_QualityMode.LOW;
 		var testName = "perlin";
 		var module = new libnoise_generator_Perlin(frequency,lacunarity,persistence,octaves,seed,quality);
 		var i = 0;
 		var temporaryHexmap = new haxe_ds_IntMap();
-		var toRemove = [];
+		var toRemove = new haxe_ds_IntMap();
 		while(i < this.get_width()) {
 			var j = 0;
 			while(j < this.get_height()) {
@@ -51815,24 +51904,26 @@ hex_RectangleHexMap.prototype = $extend(hex_HexMap.prototype,{
 				}
 				j++;
 				var noiseValue = this.getGreyValue(module.getValue(hex1.center.x,hex1.center.y,0)) / 255;
-				if(noiseValue > 0.61) toRemove.push(hexIndex);
+				if(noiseValue > 0.61) toRemove.h[hexIndex] = true;
 			}
 			i++;
 		}
-		var _g2 = 0;
-		while(_g2 < toRemove.length) {
-			var index = toRemove[_g2];
-			++_g2;
-			this.graphConnections.removeVertex(index);
-		}
+		this.graphConnections.createSubgrafFromVertices(toRemove,true);
 		this.removeIslands();
 		var $it0 = this.graphConnections.adjacencyList.keys();
 		while( $it0.hasNext() ) {
 			var vertex = $it0.next();
-			var value = temporaryHexmap.h[vertex];
-			this.hexes.h[vertex] = value;
-			this.precalculatedPoints.add(hex_HexUtilites.getHexPoints(temporaryHexmap.h[vertex].center,this.get_hexSize(),this.topping));
+			this.AddCenterOfHex(vertex,temporaryHexmap.h[vertex]);
 		}
+		var $it1 = this.graphConnections.removedVertices.keys();
+		while( $it1.hasNext() ) {
+			var vertex1 = $it1.next();
+			this.AddCenterOfHex(vertex1,temporaryHexmap.h[vertex1]);
+		}
+	}
+	,AddCenterOfHex: function(vertex,hex1) {
+		this.hexes.h[vertex] = hex1;
+		this.precalculatedPoints.add(hex_HexUtilites.getHexPoints(hex1.center,this.get_hexSize(),this.topping));
 	}
 	,getGreyValue: function(val) {
 		var val1 = 128 * (val + 1) | 0;
@@ -51878,19 +51969,12 @@ hex_RectangleHexMap.prototype = $extend(hex_HexMap.prototype,{
 			}
 		}
 		index = 0;
-		haxe_Log.trace(max + " " + maxIndex,{ fileName : "RectangleHexMap.hx", lineNumber : 144, className : "hex.RectangleHexMap", methodName : "removeIslands"});
+		haxe_Log.trace(max + " " + maxIndex,{ fileName : "RectangleHexMap.hx", lineNumber : 143, className : "hex.RectangleHexMap", methodName : "removeIslands"});
 		var _g1 = 0;
 		while(_g1 < islands.length) {
 			var island = islands[_g1];
 			++_g1;
-			if(index != maxIndex) {
-				var $it1 = island.keys();
-				while( $it1.hasNext() ) {
-					var vertex1 = $it1.next();
-					haxe_Log.trace(vertex1,{ fileName : "RectangleHexMap.hx", lineNumber : 151, className : "hex.RectangleHexMap", methodName : "removeIslands"});
-					this.graphConnections.removeVertex(vertex1);
-				}
-			}
+			if(index != maxIndex) this.graphConnections.createSubgrafFromVertices(island,true);
 			index++;
 		}
 	}
