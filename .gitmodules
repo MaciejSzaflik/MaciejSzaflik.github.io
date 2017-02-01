@@ -1,3 +1,6 @@
 [submodule "HexagonalThings"]
 	path = HexagonalThings
 	url = https://github.com/MaciejSzaflik/HexagonalThings.git
+[submodule "TerrainExperiments"]
+	path = TerrainExperiments
+	url = https://github.com/MaciejSzaflik/TerrainExperiments.git
