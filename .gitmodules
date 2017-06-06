@@ -4,3 +4,6 @@
 [submodule "TerrainExperiments"]
 	path = TerrainExperiments
 	url = https://github.com/MaciejSzaflik/TerrainExperiments.git
+[submodule "NoiseAnimation"]
+	path = NoiseAnimation
+	url = https://github.com/MaciejSzaflik/NoiseAnimation.git
